@@ -38,3 +38,17 @@ def allow_access(
         owner_id=current_owner.id,
         db=db
     )
+
+from app.services.access_request import deny_access_request
+
+@router.post("/{request_id}/deny")
+def deny_access(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return deny_access_request(
+        request_id=request_id,
+        owner_id=current_owner.id,
+        db=db
+    )

@@ -85,3 +85,51 @@ def approve_access_request(
         "status": access_request.status,
         "door_unlock_duration": 15
     }
+
+def deny_access_request(
+    request_id: int,
+    owner_id: int,
+    db: Session
+):
+    access_request = db.query(AccessRequest).filter(
+        AccessRequest.id == request_id,
+        AccessRequest.owner_id == owner_id
+    ).first()
+
+    if not access_request:
+        raise HTTPException(
+            status_code=404,
+            detail="Access request not found"
+        )
+
+    if access_request.status != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail="Request has already been processed"
+        )
+
+    now = datetime.now(timezone.utc)
+
+    expires_at = access_request.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at <= now:
+        access_request.status = "expired"
+        db.commit()
+        raise HTTPException(
+            status_code=409,
+            detail="Access request has expired"
+        )
+
+    access_request.status = "denied"
+    access_request.responded_at = now
+
+    db.commit()
+    db.refresh(access_request)
+
+    return {
+        "message": "Access request denied",
+        "request_id": access_request.id,
+        "status": access_request.status
+    }
