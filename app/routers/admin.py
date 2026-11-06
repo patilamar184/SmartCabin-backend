@@ -15,6 +15,9 @@ from fastapi import status
 
 from app.services.admin import delete_owner
 
+from app.schemas.admin import AdminDashboardResponse
+from app.services.admin import get_admin_dashboard
+
 
 router = APIRouter(
     prefix="/api/admin",
@@ -62,3 +65,13 @@ def remove_owner(
     current_admin=Depends(get_current_admin)
 ):
     return delete_owner(owner_id, db)
+
+@router.get(
+    "/dashboard",
+    response_model=AdminDashboardResponse
+)
+def admin_dashboard(
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    return get_admin_dashboard(db)

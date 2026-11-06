@@ -10,6 +10,10 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
+from sqlalchemy import func
+from app.models.visitor import Visitor
+from app.models.device import Device
+
 
 def login_admin(data: AdminLogin, db: Session):
     admin = db.query(Admin).filter(
@@ -99,4 +103,30 @@ def delete_owner(owner_id: int, db: Session):
 
     return {
         "message": "Cabin Owner deleted successfully"
+    }
+
+def get_admin_dashboard(db: Session):
+    total_owners = db.query(func.count(Owner.id)).scalar()
+
+    active_owners = db.query(func.count(Owner.id)).filter(
+        Owner.is_active == True
+    ).scalar()
+
+    blocked_owners = db.query(func.count(Owner.id)).filter(
+        Owner.is_active == False
+    ).scalar()
+
+    total_visitors = db.query(func.count(Visitor.id)).scalar()
+
+    online_devices = db.query(func.count(Device.id)).filter(
+        Device.is_online == True,
+        Device.is_active == True
+    ).scalar()
+
+    return {
+        "total_owners": total_owners,
+        "active_owners": active_owners,
+        "blocked_owners": blocked_owners,
+        "total_visitors": total_visitors,
+        "online_devices": online_devices
     }
