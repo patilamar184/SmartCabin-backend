@@ -19,7 +19,7 @@ from app.services.visitor import update_visitor
 from app.services.visitor import delete_visitor
 from app.services.visitor import initiate_fingerprint_enrollment
 
-
+from app.services.visitor import get_fingerprint_status
 router = APIRouter(
     prefix="/api/visitors",
     tags=["Visitors"]
@@ -110,6 +110,18 @@ def enroll_fingerprint(
     current_owner=Depends(get_current_owner)
 ):
     return initiate_fingerprint_enrollment(
+        visitor_id=visitor_id,
+        owner_id=current_owner.id,
+        db=db
+    )
+
+@router.get("/{visitor_id}/fingerprint/status")
+def fingerprint_status(
+    visitor_id: int,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return get_fingerprint_status(
         visitor_id=visitor_id,
         owner_id=current_owner.id,
         db=db
