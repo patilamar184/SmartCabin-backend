@@ -8,6 +8,12 @@ import uuid
 from fastapi import HTTPException
 from app.core.security import hash_password
 
+
+from fastapi import HTTPException
+from app.models.visitor import Visitor
+from app.models.device_command import DeviceCommand
+
+
 def update_device_heartbeat(device: Device, db: Session):
     device.is_online = True
     device.last_seen = datetime.now(timezone.utc)
@@ -80,3 +86,66 @@ def get_pending_commands(device: Device, db: Session):
     ).all()
 
     return commands
+
+from datetime import datetime, timezone
+from app.schemas.device import DeviceCommandAcknowledge
+
+
+def acknowledge_command(
+    command_id: int,
+    data: DeviceCommandAcknowledge,
+    device: Device,
+    db: Session
+):
+    command = db.query(DeviceCommand).filter(
+        DeviceCommand.id == command_id,
+        DeviceCommand.device_id == device.id
+    ).first()
+
+    if not command:
+        raise HTTPException(
+            status_code=404,
+            detail="Command not found"
+        )
+
+    if command.status != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail="Command has already been processed"
+        )
+
+    command.status = data.status
+    command.acknowledged_at = datetime.now(timezone.utc)
+
+    if data.status == "completed" and command.command_type == "ENROLL_FINGERPRINT":
+        visitor_id = command.payload.get("visitor_id")
+        fingerprint_id = (data.result or {}).get("fingerprint_id")
+
+        if fingerprint_id is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Fingerprint ID is required for successful enrollment"
+            )
+
+        visitor = db.query(Visitor).filter(
+            Visitor.id == visitor_id,
+            Visitor.owner_id == device.owner_id,
+            Visitor.is_active == True
+        ).first()
+
+        if not visitor:
+            raise HTTPException(
+                status_code=404,
+                detail="Visitor not found for enrollment"
+            )
+
+        visitor.fingerprint_id = fingerprint_id
+        visitor.fingerprint_enrolled = True
+
+    db.commit()
+
+    return {
+        "message": "Command acknowledgement received",
+        "command_id": command.id,
+        "status": command.status
+    }

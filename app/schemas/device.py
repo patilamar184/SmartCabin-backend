@@ -30,3 +30,9 @@ class DeviceCommandResponse(BaseModel):
     status: str
 
     model_config = {"from_attributes": True}
+
+from typing import Literal
+
+class DeviceCommandAcknowledge(BaseModel):
+    status: Literal["completed", "failed"]
+    result: dict | None = None

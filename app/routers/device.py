@@ -61,3 +61,20 @@ def pending_commands(
     current_device: Device = Depends(get_current_device)
 ):
     return get_pending_commands(current_device, db)
+
+from app.schemas.device import DeviceCommandAcknowledge
+from app.services.device import acknowledge_command
+
+@router.post("/commands/{command_id}/acknowledge")
+def acknowledge_device_command(
+    command_id: int,
+    data: DeviceCommandAcknowledge,
+    db: Session = Depends(get_db),
+    current_device: Device = Depends(get_current_device)
+):
+    return acknowledge_command(
+        command_id=command_id,
+        data=data,
+        device=current_device,
+        db=db
+    )
