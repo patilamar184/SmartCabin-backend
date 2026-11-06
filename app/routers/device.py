@@ -48,3 +48,16 @@ def my_device(
     current_owner=Depends(get_current_owner)
 ):
     return get_owner_device(current_owner.id, db)
+
+from app.schemas.device import DeviceCommandResponse
+from app.services.device import get_pending_commands
+
+@router.get(
+    "/commands/pending",
+    response_model=list[DeviceCommandResponse]
+)
+def pending_commands(
+    db: Session = Depends(get_db),
+    current_device: Device = Depends(get_current_device)
+):
+    return get_pending_commands(current_device, db)

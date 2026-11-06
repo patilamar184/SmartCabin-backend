@@ -68,3 +68,15 @@ def get_owner_device(owner_id: int, db: Session):
         )
 
     return device
+
+from app.models.device_command import DeviceCommand
+
+def get_pending_commands(device: Device, db: Session):
+    commands = db.query(DeviceCommand).filter(
+        DeviceCommand.device_id == device.id,
+        DeviceCommand.status == "pending"
+    ).order_by(
+        DeviceCommand.created_at.asc()
+    ).all()
+
+    return commands

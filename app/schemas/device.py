@@ -22,3 +22,11 @@ class DeviceResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+class DeviceCommandResponse(BaseModel):
+    id: int
+    command_type: str
+    payload: dict
+    status: str
+
+    model_config = {"from_attributes": True}
