@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 
+from app.database.database import Base, engine
+from app import models
+
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="SmartCabin API",
     description="Cabin Security Management System",
