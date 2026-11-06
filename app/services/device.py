@@ -13,6 +13,8 @@ from fastapi import HTTPException
 from app.models.visitor import Visitor
 from app.models.device_command import DeviceCommand
 
+from app.services.logging_service import create_access_log
+
 
 def update_device_heartbeat(device: Device, db: Session):
     device.is_online = True
@@ -195,6 +197,18 @@ def authenticate_visitor(
         )
 
     if not visitor:
+        create_access_log(
+            db=db,
+            owner_id=device.owner_id,
+            visitor_id=None,
+            event_type="AUTHENTICATION",
+            authentication_method=data.authentication_method,
+            result="failed",
+            description="Invalid visitor credentials"
+        )
+
+        db.commit()
+
         return {
             "authenticated": False,
             "message": "Invalid visitor credentials"
@@ -212,6 +226,17 @@ def authenticate_visitor(
     )
 
     db.add(access_request)
+
+    create_access_log(
+        db=db,
+        owner_id=device.owner_id,
+        visitor_id=visitor.id,
+        event_type="AUTHENTICATION",
+        authentication_method=data.authentication_method,
+        result="success",
+        description="Visitor authenticated successfully"
+    )
+
     db.commit()
     db.refresh(access_request)
 
@@ -223,3 +248,5 @@ def authenticate_visitor(
         "visitor_name": visitor.name,
         "status": access_request.status
     }
+
+
