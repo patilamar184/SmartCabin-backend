@@ -5,6 +5,8 @@ from app.models.admin import Admin
 from app.schemas.owner import AdminLogin
 from app.core.security import verify_password, create_access_token
 from app.models.owner import Owner
+from fastapi import HTTPException
+
 
 def login_admin(data: AdminLogin, db: Session):
     admin = db.query(Admin).filter(
@@ -39,3 +41,16 @@ def get_all_owners(db: Session):
     return db.query(Owner).order_by(
         Owner.created_at.desc()
     ).all()
+
+def get_owner_by_id(owner_id: int, db: Session):
+    owner = db.query(Owner).filter(
+        Owner.id == owner_id
+    ).first()
+
+    if not owner:
+        raise HTTPException(
+            status_code=404,
+            detail="Cabin Owner not found"
+        )
+
+    return owner
