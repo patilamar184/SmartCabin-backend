@@ -153,6 +153,7 @@ def acknowledge_command(
 from app.models.access_request import AccessRequest
 from app.core.security import verify_password
 from datetime import timedelta
+from app.schemas import DeviceAuthenticationRequest
 
 def authenticate_visitor(
     data: DeviceAuthenticationRequest,
