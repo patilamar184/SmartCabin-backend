@@ -17,6 +17,8 @@ from app.schemas.visitor import VisitorUpdate
 from app.services.visitor import update_visitor
 
 from app.services.visitor import delete_visitor
+from app.services.visitor import initiate_fingerprint_enrollment
+
 
 router = APIRouter(
     prefix="/api/visitors",
@@ -95,6 +97,19 @@ def remove_visitor(
     current_owner=Depends(get_current_owner)
 ):
     return delete_visitor(
+        visitor_id=visitor_id,
+        owner_id=current_owner.id,
+        db=db
+    )
+
+
+@router.post("/{visitor_id}/fingerprint/enroll")
+def enroll_fingerprint(
+    visitor_id: int,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return initiate_fingerprint_enrollment(
         visitor_id=visitor_id,
         owner_id=current_owner.id,
         db=db

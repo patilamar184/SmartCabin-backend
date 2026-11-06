@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.models.visitor import Visitor
 from app.schemas.visitor import VisitorCreate
 from app.core.security import hash_password, verify_password
-
+from app.models.device import Device
+from app.models.device_command import DeviceCommand
 
 def generate_unique_pin(owner_id: int, db: Session) -> str:
     visitors = db.query(Visitor).filter(
@@ -150,4 +151,60 @@ def delete_visitor(
 
     return {
         "message": "Visitor deactivated successfully"
+    }
+
+def initiate_fingerprint_enrollment(
+    visitor_id: int,
+    owner_id: int,
+    db: Session
+):
+    visitor = db.query(Visitor).filter(
+        Visitor.id == visitor_id,
+        Visitor.owner_id == owner_id,
+        Visitor.is_active == True
+    ).first()
+
+    if not visitor:
+        raise HTTPException(
+            status_code=404,
+            detail="Active visitor not found"
+        )
+
+    if visitor.fingerprint_enrolled:
+        raise HTTPException(
+            status_code=409,
+            detail="Fingerprint already enrolled"
+        )
+
+    device = db.query(Device).filter(
+        Device.owner_id == owner_id,
+        Device.is_active == True,
+        Device.is_online == True
+    ).first()
+
+    if not device:
+        raise HTTPException(
+            status_code=503,
+            detail="Cabin device is offline or unavailable"
+        )
+
+    command = DeviceCommand(
+        device_id=device.id,
+        command_type="ENROLL_FINGERPRINT",
+        payload={
+            "visitor_id": visitor.id,
+            "visitor_name": visitor.name
+        },
+        status="pending"
+    )
+
+    db.add(command)
+    db.commit()
+    db.refresh(command)
+
+    return {
+        "message": "Fingerprint enrollment command queued",
+        "command_id": command.id,
+        "visitor_id": visitor.id,
+        "status": command.status
     }
