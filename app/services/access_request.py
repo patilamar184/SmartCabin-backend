@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.models.access_request import AccessRequest
 
+from app.services.logging_service import create_access_log
+
 
 def get_pending_requests(owner_id: int, db: Session):
     return db.query(AccessRequest).filter(
@@ -68,6 +70,16 @@ def approve_access_request(
     access_request.status = "approved"
     access_request.responded_at = now
 
+    create_access_log(
+        db=db,
+        owner_id=owner_id,
+        visitor_id=access_request.visitor_id,
+        event_type="ACCESS_REQUEST",
+        result="approved",
+        authentication_method=access_request.authentication_method,
+        description="Cabin Owner approved visitor access"
+    )
+
     command = DeviceCommand(
         device_id=device.id,
         command_type="UNLOCK_DOOR",
@@ -124,6 +136,16 @@ def deny_access_request(
 
     access_request.status = "denied"
     access_request.responded_at = now
+
+    create_access_log(
+        db=db,
+        owner_id=owner_id,
+        visitor_id=access_request.visitor_id,
+        event_type="ACCESS_REQUEST",
+        result="denied",
+        authentication_method=access_request.authentication_method,
+        description="Cabin Owner denied visitor access"
+    )
 
     db.commit()
     db.refresh(access_request)
