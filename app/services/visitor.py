@@ -77,3 +77,21 @@ def get_all_visitors(owner_id: int, db: Session):
     ).order_by(
         Visitor.created_at.desc()
     ).all()
+
+def get_visitor_by_id(
+    visitor_id: int,
+    owner_id: int,
+    db: Session
+):
+    visitor = db.query(Visitor).filter(
+        Visitor.id == visitor_id,
+        Visitor.owner_id == owner_id
+    ).first()
+
+    if not visitor:
+        raise HTTPException(
+            status_code=404,
+            detail="Visitor not found"
+        )
+
+    return visitor
