@@ -24,3 +24,17 @@ def list_pending_requests(
         owner_id=current_owner.id,
         db=db
     )
+
+from app.services.access_request import approve_access_request
+
+@router.post("/{request_id}/allow")
+def allow_access(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return approve_access_request(
+        request_id=request_id,
+        owner_id=current_owner.id,
+        db=db
+    )
