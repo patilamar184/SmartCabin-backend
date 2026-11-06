@@ -15,6 +15,9 @@ from app.models.device_command import DeviceCommand
 
 from app.services.logging_service import create_access_log
 
+from app.services.logging_service import create_access_log
+from app.models.access_request import AccessRequest
+
 
 def update_device_heartbeat(device: Device, db: Session):
     device.is_online = True
@@ -143,6 +146,50 @@ def acknowledge_command(
 
         visitor.fingerprint_id = fingerprint_id
         visitor.fingerprint_enrolled = True
+
+        if command.command_type == "UNLOCK_DOOR":
+
+            access_request_id = command.payload.get(
+                "access_request_id"
+            )
+
+            access_request = db.query(AccessRequest).filter(
+                AccessRequest.id == access_request_id,
+                AccessRequest.owner_id == device.owner_id
+            ).first()
+
+            if not access_request:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Related access request not found"
+                )
+
+            if data.status == "completed":
+                if not data.result or data.result.get("door_unlocked") is not True:
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Door unlock confirmation is required"
+                    )
+
+                log_result = "success"
+                description = "ESP32 confirmed successful door unlock"
+
+            else:
+                log_result = "failed"
+                description = (
+                    data.result.get("error", "Door unlock failed")
+                    if data.result else "Door unlock failed"
+                )
+
+            create_access_log(
+                db=db,
+                owner_id=device.owner_id,
+                visitor_id=access_request.visitor_id,
+                event_type="DOOR_UNLOCK",
+                authentication_method=access_request.authentication_method,
+                result=log_result,
+                description=description
+            )
 
     db.commit()
 
