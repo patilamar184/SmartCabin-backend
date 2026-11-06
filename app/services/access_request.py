@@ -83,7 +83,10 @@ def approve_access_request(
     command = DeviceCommand(
         device_id=device.id,
         command_type="UNLOCK_DOOR",
-        payload={"duration_seconds": 15},
+        payload={
+            "duration_seconds": 15,
+            "access_request_id": access_request.id
+        },
         status="pending"
     )
 
