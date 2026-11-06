@@ -23,3 +23,7 @@ def home():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+from app.routers.owner import router as owner_router
+
+app.include_router(owner_router)
