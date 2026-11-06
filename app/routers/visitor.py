@@ -9,6 +9,9 @@ from app.schemas.visitor import (
 )
 from app.services.visitor import register_visitor
 
+from app.schemas.visitor import VisitorResponse
+from app.services.visitor import get_all_visitors
+
 router = APIRouter(
     prefix="/api/visitors",
     tags=["Visitors"]
@@ -27,6 +30,19 @@ def create_visitor(
 ):
     return register_visitor(
         data=data,
+        owner_id=current_owner.id,
+        db=db
+    )
+
+@router.get(
+    "/",
+    response_model=list[VisitorResponse]
+)
+def list_visitors(
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return get_all_visitors(
         owner_id=current_owner.id,
         db=db
     )

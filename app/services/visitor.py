@@ -68,3 +68,12 @@ def register_visitor(
         "created_at": visitor.created_at,
         "pin": pin
     }
+
+
+def get_all_visitors(owner_id: int, db: Session):
+    return db.query(Visitor).filter(
+        Visitor.owner_id == owner_id,
+        Visitor.is_active == True
+    ).order_by(
+        Visitor.created_at.desc()
+    ).all()
