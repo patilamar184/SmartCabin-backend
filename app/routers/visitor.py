@@ -16,7 +16,7 @@ from app.services.visitor import get_visitor_by_id
 from app.schemas.visitor import VisitorUpdate
 from app.services.visitor import update_visitor
 
-
+from app.services.visitor import delete_visitor
 
 router = APIRouter(
     prefix="/api/visitors",
@@ -85,5 +85,17 @@ def edit_visitor(
         visitor_id=visitor_id,
         owner_id=current_owner.id,
         data=data,
+        db=db
+    )
+
+@router.delete("/{visitor_id}")
+def remove_visitor(
+    visitor_id: int,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return delete_visitor(
+        visitor_id=visitor_id,
+        owner_id=current_owner.id,
         db=db
     )

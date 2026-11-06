@@ -126,3 +126,28 @@ def update_visitor(
     db.refresh(visitor)
 
     return visitor
+
+
+def delete_visitor(
+    visitor_id: int,
+    owner_id: int,
+    db: Session
+):
+    visitor = db.query(Visitor).filter(
+        Visitor.id == visitor_id,
+        Visitor.owner_id == owner_id
+    ).first()
+
+    if not visitor:
+        raise HTTPException(
+            status_code=404,
+            detail="Visitor not found"
+        )
+
+    visitor.is_active = False
+
+    db.commit()
+
+    return {
+        "message": "Visitor deactivated successfully"
+    }
