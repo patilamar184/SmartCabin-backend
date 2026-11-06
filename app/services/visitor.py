@@ -95,3 +95,34 @@ def get_visitor_by_id(
         )
 
     return visitor
+
+
+from app.schemas.visitor import VisitorUpdate
+
+
+def update_visitor(
+    visitor_id: int,
+    owner_id: int,
+    data: VisitorUpdate,
+    db: Session
+):
+    visitor = db.query(Visitor).filter(
+        Visitor.id == visitor_id,
+        Visitor.owner_id == owner_id
+    ).first()
+
+    if not visitor:
+        raise HTTPException(
+            status_code=404,
+            detail="Visitor not found"
+        )
+
+    update_data = data.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(visitor, field, value)
+
+    db.commit()
+    db.refresh(visitor)
+
+    return visitor

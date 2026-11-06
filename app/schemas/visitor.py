@@ -26,3 +26,10 @@ class VisitorResponse(BaseModel):
 
 class VisitorRegistrationResponse(VisitorResponse):
     pin: str
+
+
+class VisitorUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=100)
+    department: str | None = Field(default=None, min_length=2, max_length=100)
+    phone: str | None = Field(default=None, min_length=10, max_length=15)
+    role: Literal["Student", "Teacher"] | None = None

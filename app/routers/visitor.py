@@ -13,6 +13,10 @@ from app.schemas.visitor import VisitorResponse
 from app.services.visitor import get_all_visitors
 
 from app.services.visitor import get_visitor_by_id
+from app.schemas.visitor import VisitorUpdate
+from app.services.visitor import update_visitor
+
+
 
 router = APIRouter(
     prefix="/api/visitors",
@@ -63,5 +67,23 @@ def get_visitor(
     return get_visitor_by_id(
         visitor_id=visitor_id,
         owner_id=current_owner.id,
+        db=db
+    )
+
+
+@router.put(
+    "/{visitor_id}",
+    response_model=VisitorResponse
+)
+def edit_visitor(
+    visitor_id: int,
+    data: VisitorUpdate,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return update_visitor(
+        visitor_id=visitor_id,
+        owner_id=current_owner.id,
+        data=data,
         db=db
     )
