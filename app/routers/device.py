@@ -78,3 +78,18 @@ def acknowledge_device_command(
         device=current_device,
         db=db
     )
+
+from app.schemas.device import DeviceAuthenticationRequest
+from app.services.device import authenticate_visitor
+
+@router.post("/authenticate")
+def device_authentication(
+    data: DeviceAuthenticationRequest,
+    db: Session = Depends(get_db),
+    current_device: Device = Depends(get_current_device)
+):
+    return authenticate_visitor(
+        data=data,
+        device=current_device,
+        db=db
+    )

@@ -149,3 +149,76 @@ def acknowledge_command(
         "command_id": command.id,
         "status": command.status
     }
+
+from app.models.access_request import AccessRequest
+from app.core.security import verify_password
+from datetime import timedelta
+
+def authenticate_visitor(
+    data: DeviceAuthenticationRequest,
+    device: Device,
+    db: Session
+):
+    query = db.query(Visitor).filter(
+        Visitor.owner_id == device.owner_id,
+        Visitor.is_active == True
+    )
+
+    if data.authentication_method == "fingerprint":
+        if data.fingerprint_id is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Fingerprint ID is required"
+            )
+
+        visitor = query.filter(
+            Visitor.fingerprint_id == data.fingerprint_id,
+            Visitor.fingerprint_enrolled == True
+        ).first()
+
+    else:
+        if data.pin is None:
+            raise HTTPException(
+                status_code=422,
+                detail="PIN is required"
+            )
+
+        visitors = query.all()
+
+        visitor = next(
+            (
+                v for v in visitors
+                if verify_password(data.pin, v.pin_hash)
+            ),
+            None
+        )
+
+    if not visitor:
+        return {
+            "authenticated": False,
+            "message": "Invalid visitor credentials"
+        }
+
+    now = datetime.now(timezone.utc)
+
+    access_request = AccessRequest(
+        owner_id=device.owner_id,
+        visitor_id=visitor.id,
+        authentication_method=data.authentication_method,
+        status="pending",
+        created_at=now,
+        expires_at=now + timedelta(minutes=5)
+    )
+
+    db.add(access_request)
+    db.commit()
+    db.refresh(access_request)
+
+    return {
+        "authenticated": True,
+        "message": "Authentication successful. Waiting for owner approval.",
+        "access_request_id": access_request.id,
+        "visitor_id": visitor.id,
+        "visitor_name": visitor.name,
+        "status": access_request.status
+    }

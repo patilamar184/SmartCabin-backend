@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+from typing import Literal
+from pydantic import Field
+
 
 class DeviceRegister(BaseModel):
     device_name: str = Field(min_length=2, max_length=100)
@@ -36,3 +39,9 @@ from typing import Literal
 class DeviceCommandAcknowledge(BaseModel):
     status: Literal["completed", "failed"]
     result: dict | None = None
+
+
+class DeviceAuthenticationRequest(BaseModel):
+    authentication_method: Literal["fingerprint", "pin"]
+    fingerprint_id: int | None = None
+    pin: str | None = Field(default=None, min_length=4, max_length=4)
