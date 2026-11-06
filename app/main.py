@@ -46,3 +46,7 @@ app.include_router(visitor_router)
 from app.routers.device import router as device_router
 
 app.include_router(device_router)
+
+from app.routers.access_request import router as access_request_router
+
+app.include_router(access_request_router)
