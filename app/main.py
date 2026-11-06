@@ -50,3 +50,7 @@ app.include_router(device_router)
 from app.routers.access_request import router as access_request_router
 
 app.include_router(access_request_router)
+
+from app.routers.access_log import router as access_log_router
+
+app.include_router(access_log_router)
