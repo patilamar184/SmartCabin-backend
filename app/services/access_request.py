@@ -133,3 +133,22 @@ def deny_access_request(
         "request_id": access_request.id,
         "status": access_request.status
     }
+
+
+def get_access_request_by_id(
+    request_id: int,
+    owner_id: int,
+    db: Session
+):
+    access_request = db.query(AccessRequest).filter(
+        AccessRequest.id == request_id,
+        AccessRequest.owner_id == owner_id
+    ).first()
+
+    if not access_request:
+        raise HTTPException(
+            status_code=404,
+            detail="Access request not found"
+        )
+
+    return access_request

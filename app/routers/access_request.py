@@ -52,3 +52,18 @@ def deny_access(
         owner_id=current_owner.id,
         db=db
     )
+
+
+from app.services.access_request import get_access_request_by_id
+
+@router.get("/{request_id}")
+def access_request_details(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return get_access_request_by_id(
+        request_id=request_id,
+        owner_id=current_owner.id,
+        db=db
+    )
