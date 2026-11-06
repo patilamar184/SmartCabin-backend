@@ -1,0 +1,70 @@
+import secrets
+
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+from app.models.visitor import Visitor
+from app.schemas.visitor import VisitorCreate
+from app.core.security import hash_password, verify_password
+
+
+def generate_unique_pin(owner_id: int, db: Session) -> str:
+    visitors = db.query(Visitor).filter(
+        Visitor.owner_id == owner_id
+    ).all()
+
+    existing_hashes = [v.pin_hash for v in visitors]
+
+    for _ in range(100):
+        pin = f"{secrets.randbelow(10000):04d}"
+
+        if not any(
+            verify_password(pin, pin_hash)
+            for pin_hash in existing_hashes
+        ):
+            return pin
+
+    raise HTTPException(
+        status_code=500,
+        detail="Unable to generate a unique PIN"
+    )
+
+
+def register_visitor(
+    data: VisitorCreate,
+    owner_id: int,
+    db: Session
+):
+    pin = generate_unique_pin(owner_id, db)
+
+    visitor = Visitor(
+        owner_id=owner_id,
+        name=data.name,
+        department=data.department,
+        phone=data.phone,
+        role=data.role,
+        pin_hash=hash_password(pin),
+        fingerprint_enrolled=False,
+        is_active=True
+    )
+
+    try:
+        db.add(visitor)
+        db.commit()
+        db.refresh(visitor)
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "id": visitor.id,
+        "name": visitor.name,
+        "department": visitor.department,
+        "phone": visitor.phone,
+        "role": visitor.role,
+        "fingerprint_id": visitor.fingerprint_id,
+        "fingerprint_enrolled": visitor.fingerprint_enrolled,
+        "is_active": visitor.is_active,
+        "created_at": visitor.created_at,
+        "pin": pin
+    }

@@ -37,3 +37,9 @@ app.include_router(auth_router)
 from app.routers.admin import router as admin_router
 
 app.include_router(admin_router)
+
+from app.routers.visitor import router as visitor_router
+
+app.include_router(visitor_router)
+
+
