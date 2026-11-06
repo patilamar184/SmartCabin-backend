@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.admin import Admin
 from app.schemas.owner import AdminLogin
 from app.core.security import verify_password, create_access_token
-
+from app.models.owner import Owner
 
 def login_admin(data: AdminLogin, db: Session):
     admin = db.query(Admin).filter(
@@ -34,3 +34,8 @@ def login_admin(data: AdminLogin, db: Session):
         "access_token": token,
         "token_type": "bearer"
     }
+
+def get_all_owners(db: Session):
+    return db.query(Owner).order_by(
+        Owner.created_at.desc()
+    ).all()

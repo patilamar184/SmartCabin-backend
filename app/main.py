@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from app.database.database import Base, engine
 from app import models
 
+
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -31,3 +33,7 @@ app.include_router(owner_router)
 from app.routers.auth import router as auth_router
 
 app.include_router(auth_router)
+
+from app.routers.admin import router as admin_router
+
+app.include_router(admin_router)
