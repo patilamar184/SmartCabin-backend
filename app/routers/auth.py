@@ -6,6 +6,20 @@ from app.schemas.owner import OwnerLogin, TokenResponse
 from app.services.owner import login_owner
 from app.schemas.owner import OwnerResponse
 from app.dependencies.auth import get_current_owner
+
+from app.schemas.owner import AdminLogin
+from app.services.admin import login_admin
+
+
+
+
+
+
+
+
+
+
+
 router = APIRouter(
     prefix="/api/auth",
     tags=["Authentication"]
@@ -24,3 +38,14 @@ def get_owner_profile(
     current_owner = Depends(get_current_owner)
 ):
     return current_owner
+
+
+@router.post("/admin/login", response_model=TokenResponse)
+def admin_login(
+    data: AdminLogin,
+    db: Session = Depends(get_db)
+):
+    return login_admin(data, db)
+
+
+

@@ -44,3 +44,4 @@ class Visitor(Base):
         "AccessRequest", back_populates="visitor"
     )
     access_logs = relationship("AccessLog", back_populates="visitor")
+    owner = relationship("Owner", back_populates="visitors")
