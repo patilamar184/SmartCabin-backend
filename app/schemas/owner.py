@@ -33,3 +33,6 @@ class TokenResponse(BaseModel):
 class AdminLogin(BaseModel):
     email: EmailStr
     password: str
+
+class OwnerStatusUpdate(BaseModel):
+    is_active: bool

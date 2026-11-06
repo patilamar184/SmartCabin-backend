@@ -8,6 +8,10 @@ from app.services.admin import get_all_owners
 
 from app.services.admin import get_owner_by_id
 
+from app.schemas.owner import OwnerStatusUpdate
+from app.services.admin import update_owner_status
+from fastapi import status
+
 router = APIRouter(
     prefix="/api/admin",
     tags=["Admin"]
@@ -34,3 +38,15 @@ def owner_details(
     current_admin=Depends(get_current_admin)
 ):
     return get_owner_by_id(owner_id, db)
+
+@router.patch(
+    "/owners/{owner_id}/status",
+    response_model=OwnerResponse
+)
+def change_owner_status(
+    owner_id: int,
+    data: OwnerStatusUpdate,
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    return update_owner_status(owner_id, data, db)
