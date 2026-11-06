@@ -12,6 +12,10 @@ from app.schemas.owner import OwnerStatusUpdate
 from app.services.admin import update_owner_status
 from fastapi import status
 
+
+from app.services.admin import delete_owner
+
+
 router = APIRouter(
     prefix="/api/admin",
     tags=["Admin"]
@@ -50,3 +54,11 @@ def change_owner_status(
     current_admin=Depends(get_current_admin)
 ):
     return update_owner_status(owner_id, data, db)
+
+@router.delete("/owners/{owner_id}")
+def remove_owner(
+    owner_id: int,
+    db: Session = Depends(get_db),
+    current_admin=Depends(get_current_admin)
+):
+    return delete_owner(owner_id, db)

@@ -82,3 +82,21 @@ def update_owner_status(
     db.refresh(owner)
 
     return owner
+
+def delete_owner(owner_id: int, db: Session):
+    owner = db.query(Owner).filter(
+        Owner.id == owner_id
+    ).first()
+
+    if not owner:
+        raise HTTPException(
+            status_code=404,
+            detail="Cabin Owner not found"
+        )
+
+    db.delete(owner)
+    db.commit()
+
+    return {
+        "message": "Cabin Owner deleted successfully"
+    }
