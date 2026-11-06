@@ -10,7 +10,8 @@ from app.schemas.device import DeviceRegister, DeviceRegistrationResponse
 from app.dependencies.auth import get_current_owner
 from app.services.device import register_device
 
-
+from app.schemas.device import DeviceResponse
+from app.services.device import get_owner_device
 router = APIRouter(
     prefix="/api/device",
     tags=["Device Communication"]
@@ -40,3 +41,10 @@ def create_device(
         device_name=data.device_name,
         db=db
     )
+
+@router.get("/my-device", response_model=DeviceResponse)
+def my_device(
+    db: Session = Depends(get_db),
+    current_owner=Depends(get_current_owner)
+):
+    return get_owner_device(current_owner.id, db)

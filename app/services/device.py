@@ -55,3 +55,16 @@ def register_device(owner_id: int, device_name: str, db: Session):
         "is_active": device.is_active,
         "created_at": device.created_at
     }
+
+def get_owner_device(owner_id: int, db: Session):
+    device = db.query(Device).filter(
+        Device.owner_id == owner_id
+    ).first()
+
+    if not device:
+        raise HTTPException(
+            status_code=404,
+            detail="No device registered"
+        )
+
+    return device
