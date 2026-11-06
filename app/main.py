@@ -43,3 +43,6 @@ from app.routers.visitor import router as visitor_router
 app.include_router(visitor_router)
 
 
+from app.routers.device import router as device_router
+
+app.include_router(device_router)
